@@ -3,8 +3,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated  # Fixed import
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
-from .serializers import UserSerializer, MovieSerializer
-from .services import get_tokens_for_user, search_movies_by_title  # Ensure function exists
+from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
+from .services import get_tokens_for_user, search_movies_by_title  
+from .serializers import RecentSearchSerializer
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -36,3 +37,20 @@ class MovieSearchView(APIView):
 
         movie_data = search_movies_by_title(query)
         return Response(movie_data, status=status.HTTP_200_OK)
+    
+class SaveRecentSearchView(generics.CreateAPIView):
+    serializer_class = RecentSearchSerializer
+    permission_classes = [IsAuthenticated]  # Only authenticated users can save recent searches
+
+    def perform_create(self, serializer):
+        # Automatically associate the current user with the recent search
+        serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        movie_title = request.data.get('movie_title')
+        
+        if not movie_title:
+            return Response({"error": "Movie title is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Perform the save operation
+        return super().create(request, *args, **kwargs)

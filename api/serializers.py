@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from .models import RecentSearch
+from django.utils.timezone import localtime
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,5 +24,21 @@ class MovieSerializer(serializers.Serializer):
 
     def get_poster_url(self, obj):
         return f"https://image.tmdb.org/t/p/w500{obj['poster_path']}" if obj.get('poster_path') else None
+    
+class RecentSearchSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    searched_at = serializers.SerializerMethodField()
+
+    def get_searched_at(self, obj):
+       return localtime(obj.searched_at).isoformat()
+    
+    def get_user(self, obj):
+        # Assuming 'user' is a ForeignKey to the User model
+        return obj.user.username  # Fetches the actual username
+
+    class Meta:
+        model = RecentSearch
+        fields = ['id', 'user', 'movie_title', 'searched_at']
+        read_only_fields = ['id', 'searched_at']
     
 
