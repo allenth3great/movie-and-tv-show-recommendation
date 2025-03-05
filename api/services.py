@@ -1,6 +1,7 @@
 import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
+from .models import MovieFeedback
 
 def get_tokens_for_user(user):
     """Generate JWT tokens for the user."""
@@ -100,3 +101,16 @@ def get_trending_movies():
 
     except requests.exceptions.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
+    
+def submit_movie_feedback(movie_title, rating, comment, user):
+    try:
+        feedback = MovieFeedback.objects.create(
+            movie_title=movie_title,
+            rating=rating,
+            comment=comment,
+            user=user
+        )
+        return feedback
+    except Exception as e:
+        return None
+    

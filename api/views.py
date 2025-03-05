@@ -5,9 +5,9 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title 
-from .serializers import RecentSearchSerializer
+from .serializers import RecentSearchSerializer, MovieFeedbackSerializer
 from .models import RecentTVShowSearch
-from .services import get_trending_movies
+from .services import get_trending_movies, submit_movie_feedback
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -85,3 +85,36 @@ class TrendingMoviesView(APIView):
     def get(self, request):
         trending_movies = get_trending_movies()
         return Response(trending_movies, status=status.HTTP_200_OK)
+    
+class SubmitMovieFeedbackView(APIView):
+    permission_classes = [IsAuthenticated]  # Restrict access to authenticated users only
+
+    def post(self, request):
+        serializer = MovieFeedbackSerializer(data=request.data)
+
+        if serializer.is_valid():
+            movie_title = serializer.validated_data['movie_title']
+            rating = serializer.validated_data['rating']
+            comment = serializer.validated_data.get('comment', None)
+            user = request.user  # Get the authenticated user
+
+            # Call service to save feedback
+            feedback = submit_movie_feedback(movie_title, rating, comment, user)
+
+            if feedback:
+                rating_text = "Like" if rating == "1" else "Dislike"
+                return Response(
+                    {
+                        "message": f"Feedback submitted successfully! You {rating_text} the movie '{movie_title}'.",
+                        "user": user.username,
+                        "movie_title": movie_title,
+                        "rating": rating_text,
+                        "comment": comment or "No comment",
+                        "created_at": feedback.created_at  # Return created_at instead of timestamp
+                    },
+                    status=status.HTTP_201_CREATED
+                )
+            else:
+                return Response({"error": "Error saving feedback."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

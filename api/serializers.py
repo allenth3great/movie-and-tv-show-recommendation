@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import RecentSearch
+from .models import RecentSearch, MovieFeedback
 from django.utils.timezone import localtime
 
 class UserSerializer(serializers.ModelSerializer):
@@ -41,4 +41,19 @@ class RecentSearchSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'movie_title', 'searched_at']
         read_only_fields = ['id', 'searched_at']
     
+class MovieFeedbackSerializer(serializers.ModelSerializer):
+    rating = serializers.CharField()  # Handle rating as a CharField
+    timestamp = serializers.DateTimeField(read_only=True)  # Include timestamp in the response
+
+    class Meta:
+        model = MovieFeedback
+        fields = ['movie_title', 'rating', 'comment', 'timestamp']
+
+    def validate_rating(self, value):
+        value = str(value).strip()
+        if value not in ["0", "1"]:
+            raise serializers.ValidationError(
+                "Invalid rating. Valid choices are '0' (Dislike) or '1' (Like). Please provide one of these values."
+            )
+        return value
 
