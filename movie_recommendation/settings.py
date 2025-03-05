@@ -1,7 +1,6 @@
 from pathlib import Path
 from datetime import timedelta
 import os
-import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,13 +29,8 @@ INSTALLED_APPS = [
     'api',
 ]
 
-# Initialize environment variables
-env = environ.Env()
-# Read .env file
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
-
-# TMDB API Key
-TMDB_API_KEY = env("TMDB_API_KEY")  # Assuming you have the key inside your .env file
+# TMDB API Key (directly in settings)
+TMDB_API_KEY = "bf308e60c15b8d7fcf6ca0872284724c"
 
 # REST Framework settings
 REST_FRAMEWORK = {

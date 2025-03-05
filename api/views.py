@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated  # Fixed import
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
-from .services import get_tokens_for_user, search_movies_by_title  
+from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title 
 from .serializers import RecentSearchSerializer
 
 class RegisterView(generics.CreateAPIView):
@@ -54,3 +54,14 @@ class SaveRecentSearchView(generics.CreateAPIView):
         
         # Perform the save operation
         return super().create(request, *args, **kwargs)
+
+class TVShowSearchView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        query = request.query_params.get("query", "").strip()
+        if not query:
+            return Response({"error": "Query parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        tv_shows = search_tv_shows_by_title(query)
+        return Response(tv_shows, status=status.HTTP_200_OK)

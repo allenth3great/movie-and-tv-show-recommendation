@@ -40,3 +40,34 @@ def search_movies_by_title(query):
     
     except requests.exceptions.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
+    
+def search_tv_shows_by_title(query):
+    """Search TV shows by title using the TMDb API."""
+    url = "https://api.themoviedb.org/3/search/tv"
+    params = {
+        'api_key': settings.TMDB_API_KEY,
+        'query': query,
+        'language': 'en-US',
+        'page': 1
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise an exception for 4xx/5xx errors
+        data = response.json()
+        
+        if "results" in data:
+            return [
+                {
+                    "id": show["id"],
+                    "title": show["name"],  # TMDb uses "name" for TV shows
+                    "overview": show.get("overview", "No description available."),
+                    "first_air_date": show.get("first_air_date", "Unknown"),
+                    "poster_path": f"https://image.tmdb.org/t/p/w500{show['poster_path']}" if show.get("poster_path") else None
+                }
+                for show in data["results"]
+            ]
+        return {"error": "No results found."}
+    
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Error connecting to TMDb API: {str(e)}"}
