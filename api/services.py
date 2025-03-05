@@ -114,3 +114,33 @@ def submit_movie_feedback(movie_title, rating, comment, user):
     except Exception as e:
         return None
     
+def get_trending_tv_shows():
+    """Fetch trending TV shows from TMDb API."""
+    url = "https://api.themoviedb.org/3/trending/tv/week"
+    params = {
+        'api_key': settings.TMDB_API_KEY,
+        'language': 'en-US',
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise an exception for 4xx/5xx errors
+        data = response.json()
+
+        if "results" in data:
+            return [
+                {
+                    "id": tv_show["id"],
+                    "title": tv_show["name"],
+                    "overview": tv_show.get("overview", "No description available."),
+                    "first_air_date": tv_show.get("first_air_date", "Unknown"),
+                    "poster_path": f"https://image.tmdb.org/t/p/w500{tv_show['poster_path']}" if tv_show.get("poster_path") else None
+                }
+                for tv_show in data["results"]
+            ]
+        return {"error": "No results found."}
+
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Error connecting to TMDb API: {str(e)}"}
+
+    

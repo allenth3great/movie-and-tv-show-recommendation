@@ -7,7 +7,7 @@ from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title 
 from .serializers import RecentSearchSerializer, MovieFeedbackSerializer
 from .models import RecentTVShowSearch
-from .services import get_trending_movies, submit_movie_feedback
+from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -118,3 +118,10 @@ class SubmitMovieFeedbackView(APIView):
                 return Response({"error": "Error saving feedback."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class TrendingTVShowsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        trending_tv_shows = get_trending_tv_shows()
+        return Response(trending_tv_shows, status=status.HTTP_200_OK)
