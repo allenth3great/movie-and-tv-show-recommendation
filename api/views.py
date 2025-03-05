@@ -5,9 +5,10 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title 
-from .serializers import RecentSearchSerializer, MovieFeedbackSerializer
-from .models import RecentTVShowSearch
+from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer
+from .models import RecentTVShowSearch, TVShowPreference
 from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows
+from .services import TV_GENRES
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -125,3 +126,60 @@ class TrendingTVShowsView(APIView):
     def get(self, request):
         trending_tv_shows = get_trending_tv_shows()
         return Response(trending_tv_shows, status=status.HTTP_200_OK)
+    
+class TVShowPreferenceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Retrieve the user's current TV show preferences along with available genres."""
+        preference, created = TVShowPreference.objects.get_or_create(user=request.user)
+        genres_with_ids = {genre: TV_GENRES[genre] for genre in preference.preferred_genres}
+
+        return Response({
+            "preferred_genres": preference.preferred_genres,
+            "genre_ids": genres_with_ids,
+            "available_genres": TV_GENRES  # Include all available genres
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """Update the user's TV show preferences."""
+        preference, created = TVShowPreference.objects.get_or_create(user=request.user)
+        
+        # Case-insensitive genre lookup
+        available_genres_lower = {genre.lower(): genre_id for genre, genre_id in TV_GENRES.items()}
+        
+        user_input_genres = request.data.get("preferred_genres", [])
+
+        valid_genres = []
+        invalid_genres = []
+
+        for genre in user_input_genres:
+            lower_genre = genre.lower()
+            if lower_genre in available_genres_lower:
+                # Add the correctly formatted genre name
+                valid_genres.append(next(k for k, v in TV_GENRES.items() if v == available_genres_lower[lower_genre]))
+            else:
+                invalid_genres.append(genre)
+
+        # Save valid genres
+        preference.preferred_genres = valid_genres
+        preference.save()
+
+        # Construct the response
+        response_data = {
+            "preferred_genres": valid_genres,
+            "genre_ids": {genre: TV_GENRES[genre] for genre in valid_genres}
+        }
+
+        # Add error message if there are invalid genres
+        if invalid_genres:
+            response_data["error"] = {
+                "preferred_genres": [
+                    f"Invalid genres: {', '.join(invalid_genres)}. Use valid genre names."
+                ]
+            }
+
+        # Add available genres at the bottom
+        response_data["available_genres"] = TV_GENRES
+        
+        return Response(response_data, status=status.HTTP_400_BAD_REQUEST if invalid_genres else status.HTTP_200_OK)

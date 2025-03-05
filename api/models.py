@@ -23,3 +23,10 @@ class MovieFeedback(models.Model):
 
     def __str__(self):
         return f"Feedback for '{self.movie_title}' by {self.user.username}"
+
+class TVShowPreference(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    preferred_genres = models.JSONField(default=list)  # Store genre names as a list
+
+    def __str__(self):
+        return f"Preferences of {self.user.username}"

@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import RecentSearch, MovieFeedback
+from .models import RecentSearch, MovieFeedback, TVShowPreference
 from django.utils.timezone import localtime
+from .services import TV_GENRES
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,4 +57,25 @@ class MovieFeedbackSerializer(serializers.ModelSerializer):
                 "Invalid rating. Valid choices are '0' (Dislike) or '1' (Like). Please provide one of these values."
             )
         return value
+    
+class TVShowPreferenceSerializer(serializers.ModelSerializer):
+    preferred_genres = serializers.ListField(
+        child=serializers.CharField(),  # Expecting genre names as input
+        required=False
+    )
+
+    def validate_preferred_genres(self, value):
+        """Validate genre names and convert them to IDs."""
+        invalid_genres = [genre for genre in value if genre not in TV_GENRES]
+        if invalid_genres:
+            raise serializers.ValidationError(
+                f"Invalid genres: {', '.join(invalid_genres)}. Use valid genre names."
+            )
+        return value  # Store genre names
+
+    class Meta:
+        model = TVShowPreference
+        fields = ['preferred_genres']
+
+
 
