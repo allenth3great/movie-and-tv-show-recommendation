@@ -71,3 +71,32 @@ def search_tv_shows_by_title(query):
     
     except requests.exceptions.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
+    
+def get_trending_movies():
+    """Fetch trending movies from the TMDb API."""
+    url = "https://api.themoviedb.org/3/trending/movie/week"
+    params = {
+        'api_key': settings.TMDB_API_KEY,
+        'language': 'en-US'
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise an error for HTTP 4xx/5xx responses
+        data = response.json()
+
+        if "results" in data:
+            return [
+                {
+                    "id": movie["id"],
+                    "title": movie["title"],
+                    "overview": movie.get("overview", "No description available."),
+                    "release_date": movie.get("release_date", "Unknown"),
+                    "poster_path": f"https://image.tmdb.org/t/p/w500{movie['poster_path']}" if movie.get("poster_path") else None
+                }
+                for movie in data["results"]
+            ]
+        return {"error": "No trending movies found."}
+
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Error connecting to TMDb API: {str(e)}"}

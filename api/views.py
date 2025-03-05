@@ -7,6 +7,7 @@ from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title 
 from .serializers import RecentSearchSerializer
 from .models import RecentTVShowSearch
+from .services import get_trending_movies
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -77,3 +78,10 @@ class ClearRecentTVShowSearchView(APIView):
         if deleted_count > 0:
             return Response({"message": "Recent TV show searches cleared successfully."}, status=status.HTTP_200_OK)
         return Response({"message": "No recent TV show searches to clear."}, status=status.HTTP_200_OK)
+
+class TrendingMoviesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        trending_movies = get_trending_movies()
+        return Response(trending_movies, status=status.HTTP_200_OK)
