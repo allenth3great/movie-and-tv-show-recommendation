@@ -1,11 +1,12 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated  # Fixed import
+from rest_framework.permissions import IsAuthenticated  
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title 
 from .serializers import RecentSearchSerializer
+from .models import RecentTVShowSearch
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -65,3 +66,14 @@ class TVShowSearchView(APIView):
 
         tv_shows = search_tv_shows_by_title(query)
         return Response(tv_shows, status=status.HTTP_200_OK)
+
+class ClearRecentTVShowSearchView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        deleted_count, _ = RecentTVShowSearch.objects.filter(user=user).delete()
+
+        if deleted_count > 0:
+            return Response({"message": "Recent TV show searches cleared successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "No recent TV show searches to clear."}, status=status.HTTP_200_OK)
