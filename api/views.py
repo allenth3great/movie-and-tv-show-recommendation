@@ -8,7 +8,7 @@ from .services import get_tokens_for_user, search_movies_by_title, search_tv_sho
 from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer
 from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback
 from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback
-from .services import TV_GENRES
+from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -233,3 +233,23 @@ class MovieRecommendationFeedbackView(APIView):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+class TVShowRecommendationsView(APIView):
+    """Returns recommended TV shows based on a given TV show ID."""
+
+    def get(self, request, tv_show_id):
+        """Fetch and return recommended TV shows."""
+        recommendations = get_tv_show_recommendations(tv_show_id)
+        
+        if "error" in recommendations:
+            return Response(recommendations, status=status.HTTP_400_BAD_REQUEST)
+
+        # Optional: Fetch the TV show title for better response clarity
+        tv_show_title = fetch_tv_show_title(tv_show_id)
+
+        return Response(
+            {
+                "TV Show Recommendations for": tv_show_title,
+                "recommendations": recommendations
+            },
+            status=status.HTTP_200_OK
+        )

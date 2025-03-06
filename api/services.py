@@ -231,3 +231,45 @@ def save_feedback(user, movie_id, recommended_movie_id, feedback):
         defaults={"feedback": feedback}
     )
     return feedback_instance
+
+def get_tv_show_recommendations(tv_show_id):
+    """Fetch recommended TV shows based on a given TV show ID from the TMDb API."""
+    url = f"https://api.themoviedb.org/3/tv/{tv_show_id}/recommendations"
+    params = {
+        'api_key': settings.TMDB_API_KEY,
+        'language': 'en-US',
+        'page': 1
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        data = response.json()
+
+        if "results" in data and data["results"]:
+            return [
+                {
+                    "id": show["id"],
+                    "title": show.get("name", "Unknown Title"),
+                    "overview": show.get("overview", "No description available."),
+                    "first_air_date": show.get("first_air_date", "Unknown"),
+                    "poster_path": f"https://image.tmdb.org/t/p/w500{show['poster_path']}" if show.get("poster_path") else None
+                }
+                for show in data["results"]
+            ]
+        return {"error": "No recommendations found."}
+    except requests.RequestException as e:
+        return {"error": f"Error connecting to TMDb API: {str(e)}"}
+    
+def fetch_tv_show_title(tv_show_id):
+    """Fetch the title of a TV show by its ID from the TMDb API."""
+    url = f"https://api.themoviedb.org/3/tv/{tv_show_id}"
+    params = {'api_key': settings.TMDB_API_KEY, 'language': 'en-US'}
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise an error for HTTP issues
+        data = response.json()
+        return data.get("name", "Unknown Title")
+    except requests.RequestException:
+        return "Unknown Title"
