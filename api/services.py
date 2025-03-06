@@ -162,5 +162,49 @@ def get_trending_tv_shows():
 
     except requests.exceptions.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
-
     
+def get_movie_title(movie_id):
+    """Fetch the movie title from TMDb based on the given movie_id."""
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}"
+    params = {
+        "api_key": settings.TMDB_API_KEY,
+        "language": "en-US"
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("title", "Unknown Movie")
+    except requests.exceptions.RequestException:
+        return None  # Return None if the movie is not found
+
+def get_movie_recommendations(movie_id):
+    """Fetch recommended movies based on a given movie ID from the TMDb API."""
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations"
+    params = {
+        "api_key": settings.TMDB_API_KEY,
+        "language": "en-US",
+        "page": 1
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        recommendations = [
+            {
+                "id": movie["id"],
+                "title": movie["title"],
+                "overview": movie.get("overview", "No description available."),
+                "release_date": movie.get("release_date", "Unknown"),
+                "poster_path": f"https://image.tmdb.org/t/p/w500{movie['poster_path']}" if movie.get("poster_path") else None
+            }
+            for movie in data.get("results", [])
+        ]
+
+        return recommendations if recommendations else None
+    
+    except requests.exceptions.RequestException:
+        return None

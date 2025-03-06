@@ -7,7 +7,7 @@ from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title 
 from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer
 from .models import RecentTVShowSearch, TVShowPreference
-from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows
+from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations
 from .services import TV_GENRES
 
 class RegisterView(generics.CreateAPIView):
@@ -183,3 +183,20 @@ class TVShowPreferenceView(APIView):
         response_data["available_genres"] = TV_GENRES
         
         return Response(response_data, status=status.HTTP_400_BAD_REQUEST if invalid_genres else status.HTTP_200_OK)
+    
+class MovieRecommendationsView(APIView):
+    def get(self, request, movie_id):
+        """Retrieve recommended movies for a given movie ID."""
+        movie_title = get_movie_title(movie_id)
+        
+        if movie_title is None:
+            return Response({"error": "Movie not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        recommendations = get_movie_recommendations(movie_id)
+
+        if recommendations is None:
+            return Response({"movie": movie_title, "recommendations": []}, status=status.HTTP_200_OK)
+
+        return Response({"movie": movie_title, "recommendations": recommendations}, status=status.HTTP_200_OK)
+    
+
