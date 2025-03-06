@@ -1,7 +1,7 @@
 import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
-from .models import MovieFeedback
+from .models import MovieFeedback, MovieRecommendationFeedback
 
 TV_GENRES = {
     "Action & Adventure": 10759,
@@ -208,3 +208,26 @@ def get_movie_recommendations(movie_id):
     
     except requests.exceptions.RequestException:
         return None
+    
+def fetch_movie_title(movie_id):
+    """Fetch movie title from TMDb API based on movie ID."""
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}"
+    params = {"api_key": settings.TMDB_API_KEY, "language": "en-US"}
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise an error for bad responses
+        data = response.json()
+        return data.get("title", "Unknown Title")
+    except requests.RequestException:
+        return "Unknown Title"
+
+def save_feedback(user, movie_id, recommended_movie_id, feedback):
+    """Save user feedback on recommended movies."""
+    feedback_instance, created = MovieRecommendationFeedback.objects.update_or_create(
+        user=user,
+        movie_id=movie_id,
+        recommended_movie_id=recommended_movie_id,
+        defaults={"feedback": feedback}
+    )
+    return feedback_instance

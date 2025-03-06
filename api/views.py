@@ -5,9 +5,9 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title 
-from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer
-from .models import RecentTVShowSearch, TVShowPreference
-from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations
+from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer
+from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback
+from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback
 from .services import TV_GENRES
 
 class RegisterView(generics.CreateAPIView):
@@ -199,4 +199,37 @@ class MovieRecommendationsView(APIView):
 
         return Response({"movie": movie_title, "recommendations": recommendations}, status=status.HTTP_200_OK)
     
+class MovieRecommendationFeedbackView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, movie_id):
+        """Allows users to like or dislike a recommended movie."""
+        user = request.user
+        recommended_movie_id = request.data.get("recommended_movie_id")
+        feedback = request.data.get("feedback", "").lower()  # Convert feedback to lowercase
+
+        valid_feedback = ["like", "dislike"]
+
+        if not recommended_movie_id or feedback not in valid_feedback:
+            return Response(
+                {"error": "Invalid input. Provide 'recommended_movie_id' and feedback ('like' or 'dislike')."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if the feedback already exists
+        existing_feedback = MovieRecommendationFeedback.objects.filter(
+            user=user, movie_id=movie_id, recommended_movie_id=recommended_movie_id
+        ).first()
+
+        if existing_feedback:
+            return Response(
+                {"error": "You have already provided feedback for this recommendation."},
+                status=status.HTTP_409_CONFLICT
+            )
+
+        # Save feedback
+        feedback_instance = save_feedback(user, movie_id, recommended_movie_id, feedback)
+        serializer = MovieRecommendationFeedbackSerializer(feedback_instance)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 

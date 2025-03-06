@@ -30,3 +30,23 @@ class TVShowPreference(models.Model):
 
     def __str__(self):
         return f"Preferences of {self.user.username}"
+
+class MovieRecommendationFeedback(models.Model):
+    LIKE = 'like'
+    DISLIKE = 'dislike'
+    FEEDBACK_CHOICES = [
+        (LIKE, 'Like'),
+        (DISLIKE, 'Dislike'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    movie_id = models.IntegerField()
+    recommended_movie_id = models.IntegerField()
+    feedback = models.CharField(max_length=10, choices=FEEDBACK_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'movie_id', 'recommended_movie_id')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.recommended_movie_id} ({self.feedback})"

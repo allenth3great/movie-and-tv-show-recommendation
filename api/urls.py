@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import RegisterView, LoginView, MovieSearchView, SaveRecentSearchView, TVShowSearchView, ClearRecentTVShowSearchView
-from .views import TrendingMoviesView, SubmitMovieFeedbackView, TrendingTVShowsView, TVShowPreferenceView, MovieRecommendationsView
+from .views import TrendingMoviesView, SubmitMovieFeedbackView, TrendingTVShowsView, TVShowPreferenceView, MovieRecommendationsView, MovieRecommendationFeedbackView
 
 
 urlpatterns = [
@@ -15,4 +15,6 @@ urlpatterns = [
     path('tvshows/trending/', TrendingTVShowsView.as_view(), name='trending-tv-shows'),
     path('tvshows/trending/preferences/', TVShowPreferenceView.as_view(), name='tvshow-preferences'),
     path('movies/<int:movie_id>/recommendations/', MovieRecommendationsView.as_view(), name='movie-recommendations'),
+    path("movies/<int:movie_id>/recommendations/feedback/", MovieRecommendationFeedbackView.as_view(), name="movie-feedback"),
 ]
+
