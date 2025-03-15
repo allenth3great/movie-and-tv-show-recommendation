@@ -50,3 +50,15 @@ class MovieRecommendationFeedback(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.recommended_movie_id} ({self.feedback})"
+
+class TVShowRecommendation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    tvshow_id = models.IntegerField()  # The original TV show the recommendation is based on
+    recommended_tv_show_id = models.IntegerField()  # The recommended TV show
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'tvshow_id', 'recommended_tv_show_id')
+
+    def __str__(self):
+        return f"{self.user.username} recommends {self.recommended_tv_show_id} for {self.tvshow_id}"

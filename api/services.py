@@ -1,7 +1,7 @@
 import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
-from .models import MovieFeedback, MovieRecommendationFeedback
+from .models import MovieFeedback, MovieRecommendationFeedback, TVShowRecommendation
 
 TV_GENRES = {
     "Action & Adventure": 10759,
@@ -273,3 +273,12 @@ def fetch_tv_show_title(tv_show_id):
         return data.get("name", "Unknown Title")
     except requests.RequestException:
         return "Unknown Title"
+
+def save_tv_show_recommendation(user, tvshow_id, recommended_tv_show_id):
+    """Save a TV show recommendation for a user."""
+    recommendation, created = TVShowRecommendation.objects.get_or_create(
+        user=user,
+        tvshow_id=tvshow_id,
+        recommended_tv_show_id=recommended_tv_show_id
+    )
+    return recommendation, created

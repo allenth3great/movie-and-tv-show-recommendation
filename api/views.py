@@ -5,10 +5,10 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title 
-from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer
+from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer
 from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback
 from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback
-from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title
+from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title, save_tv_show_recommendation
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -253,3 +253,21 @@ class TVShowRecommendationsView(APIView):
             },
             status=status.HTTP_200_OK
         )
+
+class SaveTVShowRecommendationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, tvShowId):
+        """Save a specific TV show recommendation."""
+        user = request.user
+        recommended_tv_show_id = request.data.get("recommended_tv_show_id")
+
+        if not recommended_tv_show_id:
+            return Response({"error": "recommended_tv_show_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        recommendation, created = save_tv_show_recommendation(user, tvShowId, recommended_tv_show_id)
+        serializer = TVShowRecommendationSerializer(recommendation)
+
+        if created:
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({"message": "Recommendation already exists.", "data": serializer.data}, status=status.HTTP_200_OK)

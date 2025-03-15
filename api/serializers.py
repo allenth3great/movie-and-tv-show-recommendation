@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import RecentSearch, MovieFeedback, TVShowPreference, MovieRecommendationFeedback
+from .models import RecentSearch, MovieFeedback, TVShowPreference, MovieRecommendationFeedback, TVShowRecommendation
 from django.utils.timezone import localtime
 from .services import TV_GENRES, fetch_movie_title
 
@@ -96,4 +96,12 @@ class MovieRecommendationFeedbackSerializer(serializers.ModelSerializer):
 
     def get_recommended_movie_title(self, obj):
         return fetch_movie_title(obj.recommended_movie_id) or "Unknown Movie"
+
+class TVShowRecommendationSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        model = TVShowRecommendation
+        fields = ["id", "username", "tvshow_id", "recommended_tv_show_id", "created_at"]
+        read_only_fields = ["id", "username", "created_at"]
 
