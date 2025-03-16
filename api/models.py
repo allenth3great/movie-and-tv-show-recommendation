@@ -74,3 +74,16 @@ class FavoriteMovie(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.movie_title}"
+
+class FavoriteActor(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    actor_id = models.IntegerField()  # Actor's ID from TMDb
+    actor_name = models.CharField(max_length=255)
+    profile_path = models.URLField(null=True, blank=True)  # Optional actor image
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'actor_id')  # Prevent duplicate favorites
+
+    def __str__(self):
+        return f"{self.user.username} - {self.actor_name}"

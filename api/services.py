@@ -1,7 +1,7 @@
 import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
-from .models import MovieFeedback, MovieRecommendationFeedback, TVShowRecommendation, FavoriteMovie
+from .models import MovieFeedback, MovieRecommendationFeedback, TVShowRecommendation, FavoriteMovie, FavoriteActor
 
 TV_GENRES = {
     "Action & Adventure": 10759,
@@ -493,3 +493,12 @@ def get_movie_details_and_cast(movie_id):
 
     except requests.exceptions.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
+
+def add_favorite_actor(user, actor_id, actor_name, profile_path=None):
+    """Save an actor as a favorite for the user."""
+    favorite, created = FavoriteActor.objects.get_or_create(
+        user=user,
+        actor_id=actor_id,
+        defaults={"actor_name": actor_name, "profile_path": profile_path}
+    )
+    return favorite, created

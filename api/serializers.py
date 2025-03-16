@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import RecentSearch, MovieFeedback, TVShowPreference, MovieRecommendationFeedback, TVShowRecommendation, FavoriteMovie
+from .models import RecentSearch, MovieFeedback, TVShowPreference, MovieRecommendationFeedback, TVShowRecommendation, FavoriteMovie, FavoriteActor
 from django.utils.timezone import localtime
 from .services import TV_GENRES, fetch_movie_title
 
@@ -163,3 +163,8 @@ class MovieCastAndCrewSerializer(serializers.Serializer):
     movie_title = serializers.CharField()  # Include movie title in the response
     cast = CastSerializer(many=True)
     crew = CrewSerializer(many=True)
+
+class FavoriteActorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FavoriteActor
+        fields = ['id', 'actor_id', 'actor_name', 'profile_path', 'added_at']

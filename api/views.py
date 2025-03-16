@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated  
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
-from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer, TopRatedTVShowSerializer, TVShowCustomizationSerializer, CustomizedTopRatedTVShowSerializer
-from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie, get_top_rated_tv_shows
+from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer, TopRatedTVShowSerializer, TVShowCustomizationSerializer, CustomizedTopRatedTVShowSerializer, FavoriteActorSerializer
+from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie, get_top_rated_tv_shows, add_favorite_actor
 from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer, MovieCastAndCrewSerializer
 from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback, FavoriteMovie
 from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies, get_movie_details_and_cast
@@ -364,3 +364,23 @@ class MovieCastView(APIView):
 
         serializer = MovieCastAndCrewSerializer(movie_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class AddFavoriteActorView(APIView):
+    """Add a cast member to the user's favorite actors list."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, movie_id):
+        actor_id = request.data.get("actor_id")
+        actor_name = request.data.get("actor_name")
+        profile_path = request.data.get("profile_path")  # Optional
+
+        if not actor_id or not actor_name:
+            return Response({"error": "actor_id and actor_name are required."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        favorite, created = add_favorite_actor(request.user, actor_id, actor_name, profile_path)
+        serializer = FavoriteActorSerializer(favorite)
+
+        if created:
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({"message": "Actor already in favorites.", "data": serializer.data}, status=status.HTTP_200_OK)
