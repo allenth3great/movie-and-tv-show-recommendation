@@ -4,10 +4,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer, TopRatedTVShowSerializer, TVShowCustomizationSerializer, CustomizedTopRatedTVShowSerializer
-from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie, get_top_rated_tv_shows 
-from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer
+from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie, get_top_rated_tv_shows
+from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer, MovieCastAndCrewSerializer
 from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback, FavoriteMovie
-from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies
+from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies, get_movie_details_and_cast
 from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title, save_tv_show_recommendation, remove_tv_show_recommendation, get_customized_top_rated_tv_shows, TV_SHOW_GENRES
 
 class RegisterView(generics.CreateAPIView):
@@ -352,3 +352,15 @@ class CustomizeTopRatedTVShowsView(APIView):
             "available_genres": TV_SHOW_GENRES
         }
         return Response(response_data, status=status.HTTP_200_OK)
+
+class MovieCastView(APIView):
+    """Retrieve the movie title, cast, and crew for a specific movie."""
+
+    def get(self, request, movie_id):
+        movie_data = get_movie_details_and_cast(movie_id)
+
+        if "error" in movie_data:
+            return Response({"error": movie_data["error"]}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MovieCastAndCrewSerializer(movie_data)
+        return Response(serializer.data, status=status.HTTP_200_OK)

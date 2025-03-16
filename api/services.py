@@ -435,3 +435,61 @@ def get_customized_top_rated_tv_shows(preferred_genres=None, min_rating=None, re
 
     except requests.exceptions.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
+
+def get_movie_details_and_cast(movie_id):
+    """Fetch the movie title, cast, and crew from the TMDb API."""
+    details_url = f"https://api.themoviedb.org/3/movie/{movie_id}"
+    credits_url = f"https://api.themoviedb.org/3/movie/{movie_id}/credits"
+    
+    params = {
+        'api_key': settings.TMDB_API_KEY,
+        'language': 'en-US'
+    }
+
+    try:
+        # Fetch movie details (for title)
+        details_response = requests.get(details_url, params=params)
+        details_response.raise_for_status()
+        details_data = details_response.json()
+
+        # Fetch cast and crew details
+        credits_response = requests.get(credits_url, params=params)
+        credits_response.raise_for_status()
+        credits_data = credits_response.json()
+
+        if "title" not in details_data or "cast" not in credits_data or "crew" not in credits_data:
+            return {"error": "No movie details, cast, or crew information found."}
+
+        # Extract movie title
+        movie_title = details_data["title"]
+
+        # Extract cast details (limit to 10 for brevity)
+        cast = [
+            {
+                "id": member["id"],
+                "name": member["name"],
+                "character": member.get("character", "Unknown"),
+                "profile_path": f"https://image.tmdb.org/t/p/w500{member['profile_path']}" if member.get("profile_path") else None
+            }
+            for member in credits_data["cast"][:10]
+        ]
+
+        # Extract crew details (filtering for director, producer, writer)
+        crew = [
+            {
+                "id": member["id"],
+                "name": member["name"],
+                "job": member["job"],
+                "profile_path": f"https://image.tmdb.org/t/p/w500{member['profile_path']}" if member.get("profile_path") else None
+            }
+            for member in credits_data["crew"] if member["job"] in ["Director", "Producer", "Writer"]
+        ]
+
+        return {
+            "movie_title": movie_title,
+            "cast": cast,
+            "crew": crew
+        }
+
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Error connecting to TMDb API: {str(e)}"}

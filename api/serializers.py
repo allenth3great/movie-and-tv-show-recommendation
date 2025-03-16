@@ -146,3 +146,20 @@ class CustomizedTopRatedTVShowSerializer(serializers.Serializer):
     poster_path = serializers.CharField(allow_null=True)
     vote_average = serializers.FloatField()
     genres = serializers.ListField(child=serializers.CharField(), required=False)
+
+class CastSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    character = serializers.CharField()
+    profile_path = serializers.CharField(allow_null=True)
+
+class CrewSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    job = serializers.CharField()
+    profile_path = serializers.CharField(allow_null=True)
+
+class MovieCastAndCrewSerializer(serializers.Serializer):
+    movie_title = serializers.CharField()  # Include movie title in the response
+    cast = CastSerializer(many=True)
+    crew = CrewSerializer(many=True)
