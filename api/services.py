@@ -282,3 +282,18 @@ def save_tv_show_recommendation(user, tvshow_id, recommended_tv_show_id):
         recommended_tv_show_id=recommended_tv_show_id
     )
     return recommendation, created
+
+def remove_tv_show_recommendation(user, tv_show_id, recommended_tv_show_id):
+    """
+    Remove a specific TV show recommendation.
+    """
+    try:
+        recommendation = TVShowRecommendation.objects.get(
+            user=user,
+            tvshow_id=tv_show_id,
+            recommended_tv_show_id=recommended_tv_show_id
+        )
+        recommendation.delete()
+        return {"message": "Recommendation removed successfully."}
+    except TVShowRecommendation.DoesNotExist:
+        return {"error": "Recommendation not found."}
