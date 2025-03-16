@@ -3,12 +3,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated  
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
-from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer, TopRatedTVShowSerializer
+from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer, TopRatedTVShowSerializer, TVShowCustomizationSerializer, CustomizedTopRatedTVShowSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie, get_top_rated_tv_shows 
 from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer
 from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback, FavoriteMovie
 from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies
-from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title, save_tv_show_recommendation, remove_tv_show_recommendation
+from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title, save_tv_show_recommendation, remove_tv_show_recommendation, get_customized_top_rated_tv_shows, TV_SHOW_GENRES
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -328,3 +328,27 @@ class TopRatedTVShowsView(APIView):
 
         serializer = TopRatedTVShowSerializer(tv_shows, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class CustomizeTopRatedTVShowsView(APIView):
+    def post(self, request):
+        """Customize how top-rated TV shows are displayed based on user preferences."""
+        serializer = TVShowCustomizationSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        preferences = serializer.validated_data
+        tv_shows = get_customized_top_rated_tv_shows(
+            preferred_genres=preferences.get("preferred_genres"),
+            min_rating=preferences.get("min_rating"),
+            release_year=preferences.get("release_year")
+        )
+
+        if "error" in tv_shows:
+            return Response(tv_shows, status=status.HTTP_404_NOT_FOUND)
+
+        response_data = {
+            "filtered_tv_shows": CustomizedTopRatedTVShowSerializer(tv_shows, many=True).data,
+            "available_genres": TV_SHOW_GENRES
+        }
+        return Response(response_data, status=status.HTTP_200_OK)

@@ -129,3 +129,20 @@ class TopRatedTVShowSerializer(serializers.Serializer):
     poster_path = serializers.CharField(allow_null=True)
     vote_average = serializers.FloatField()
 
+class TVShowCustomizationSerializer(serializers.Serializer):
+    preferred_genres = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        help_text="List of preferred genres (e.g., ['Drama', 'Comedy'])"
+    )
+    min_rating = serializers.FloatField(required=False, help_text="Minimum rating (0-10)")
+    release_year = serializers.IntegerField(required=False, help_text="Filter by release year")
+
+class CustomizedTopRatedTVShowSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+    overview = serializers.CharField()
+    first_air_date = serializers.CharField()
+    poster_path = serializers.CharField(allow_null=True)
+    vote_average = serializers.FloatField()
+    genres = serializers.ListField(child=serializers.CharField(), required=False)

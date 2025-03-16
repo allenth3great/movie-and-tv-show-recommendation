@@ -22,6 +22,25 @@ TV_GENRES = {
     "Western": 37
 }
 
+TV_SHOW_GENRES = {
+    "Action & Adventure": 10759,
+    "Animation": 16,
+    "Comedy": 35,
+    "Crime": 80,
+    "Documentary": 99,
+    "Drama": 18,
+    "Family": 10751,
+    "Kids": 10762,
+    "Mystery": 9648,
+    "News": 10763,
+    "Reality": 10764,
+    "Sci-Fi & Fantasy": 10765,
+    "Soap": 10766,
+    "Talk": 10767,
+    "War & Politics": 10768,
+    "Western": 37
+}
+
 
 def get_tokens_for_user(user):
     """Generate JWT tokens for the user."""
@@ -367,6 +386,52 @@ def get_top_rated_tv_shows():
                 for tv_show in data["results"]
             ]
         return {"error": "No results found."}
+
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Error connecting to TMDb API: {str(e)}"}
+
+def get_customized_top_rated_tv_shows(preferred_genres=None, min_rating=None, release_year=None):
+    """Fetch top-rated TV shows from TMDb API and filter based on user preferences."""
+    url = "https://api.themoviedb.org/3/tv/top_rated"
+    params = {
+        "api_key": settings.TMDB_API_KEY,
+        "language": "en-US",
+        "page": 1
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        if "results" not in data:
+            return {"error": "No results found."}
+
+        filtered_tv_shows = []
+        for show in data["results"]:
+            # Convert genre names to IDs
+            show_genre_ids = set(show.get("genre_ids", []))
+            genre_filter = True  # Default to True (accept all genres)
+
+            if preferred_genres:
+                selected_genre_ids = {TV_SHOW_GENRES.get(genre) for genre in preferred_genres if genre in TV_SHOW_GENRES}
+                genre_filter = bool(show_genre_ids & selected_genre_ids)  # At least one matching genre
+
+            rating_filter = min_rating is None or show.get("vote_average", 0) >= min_rating
+            year_filter = release_year is None or (show.get("first_air_date", "").startswith(str(release_year)))
+
+            if genre_filter and rating_filter and year_filter:
+                filtered_tv_shows.append({
+                    "id": show["id"],
+                    "title": show["name"],
+                    "overview": show.get("overview", "No description available."),
+                    "first_air_date": show.get("first_air_date", "Unknown"),
+                    "poster_path": f"https://image.tmdb.org/t/p/w500{show['poster_path']}" if show.get("poster_path") else None,
+                    "vote_average": show.get("vote_average", 0),
+                    "genres": [genre for genre, genre_id in TV_SHOW_GENRES.items() if genre_id in show_genre_ids]
+                })
+
+        return filtered_tv_shows if filtered_tv_shows else {"error": "No TV shows match your criteria."}
 
     except requests.exceptions.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
