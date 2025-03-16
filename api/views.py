@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated  
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
-from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer
-from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie 
+from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer, TopRatedTVShowSerializer
+from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie, get_top_rated_tv_shows 
 from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer
 from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback, FavoriteMovie
 from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies
@@ -317,3 +317,14 @@ class AddFavoriteMovieView(APIView):
 
         result = add_favorite_movie(user, movie_id, movie_title)
         return Response(result, status=status.HTTP_201_CREATED)
+
+class TopRatedTVShowsView(APIView):
+    def get(self, request):
+        """Retrieve top-rated TV shows from TMDb API."""
+        tv_shows = get_top_rated_tv_shows()
+        
+        if "error" in tv_shows:
+            return Response(tv_shows, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = TopRatedTVShowSerializer(tv_shows, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

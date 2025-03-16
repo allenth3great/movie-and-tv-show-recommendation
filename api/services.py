@@ -339,3 +339,34 @@ def add_favorite_movie(user, movie_id, movie_title):
     if created:
         return {"message": f"'{movie_title}' added to favorites."}
     return {"message": f"'{movie_title}' is already in favorites."}
+
+def get_top_rated_tv_shows():
+    """Fetch top-rated TV shows from TMDb API."""
+    url = "https://api.themoviedb.org/3/tv/top_rated"
+    params = {
+        "api_key": settings.TMDB_API_KEY,
+        "language": "en-US",
+        "page": 1
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise error for bad responses
+        data = response.json()
+
+        if "results" in data:
+            return [
+                {
+                    "id": tv_show["id"],
+                    "title": tv_show["name"],
+                    "overview": tv_show.get("overview", "No description available."),
+                    "first_air_date": tv_show.get("first_air_date", "Unknown"),
+                    "poster_path": f"https://image.tmdb.org/t/p/w500{tv_show['poster_path']}" if tv_show.get("poster_path") else None,
+                    "vote_average": tv_show.get("vote_average", 0)
+                }
+                for tv_show in data["results"]
+            ]
+        return {"error": "No results found."}
+
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Error connecting to TMDb API: {str(e)}"}

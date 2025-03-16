@@ -120,4 +120,12 @@ class FavoriteMovieSerializer(serializers.ModelSerializer):
         model = FavoriteMovie
         fields = ["id", "user", "movie_id", "movie_title", "added_at"]
         read_only_fields = ["id", "user", "added_at"]
-        
+
+class TopRatedTVShowSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+    overview = serializers.CharField()
+    first_air_date = serializers.CharField()
+    poster_path = serializers.CharField(allow_null=True)
+    vote_average = serializers.FloatField()
+
