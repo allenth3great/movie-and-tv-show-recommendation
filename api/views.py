@@ -5,9 +5,9 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title 
-from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer
+from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer
 from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback
-from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback
+from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies
 from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title, save_tv_show_recommendation, remove_tv_show_recommendation
 
 class RegisterView(generics.CreateAPIView):
@@ -291,3 +291,14 @@ class RemoveTVShowRecommendationView(APIView):
             return Response(result, status=status.HTTP_404_NOT_FOUND)
 
         return Response(result, status=status.HTTP_200_OK)
+
+class TopRatedMoviesView(APIView):
+    def get(self, request):
+        """Retrieve the top-rated movies from TMDb."""
+        movies = get_top_rated_movies()
+
+        if "error" in movies:
+            return Response(movies, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        serializer = TopRatedMovieSerializer(movies, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

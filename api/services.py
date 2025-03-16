@@ -297,3 +297,33 @@ def remove_tv_show_recommendation(user, tv_show_id, recommended_tv_show_id):
         return {"message": "Recommendation removed successfully."}
     except TVShowRecommendation.DoesNotExist:
         return {"error": "Recommendation not found."}
+
+def get_top_rated_movies():
+    """Fetch the top-rated movies from the TMDb API."""
+    url = "https://api.themoviedb.org/3/movie/top_rated"
+    params = {
+        'api_key': settings.TMDB_API_KEY,
+        'language': 'en-US',
+        'page': 1  # Fetch the first page
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        if "results" in data:
+            return [
+                {
+                    "id": movie["id"],
+                    "title": movie["title"],
+                    "overview": movie.get("overview", "No description available."),
+                    "release_date": movie.get("release_date", "Unknown"),
+                    "rating": movie.get("vote_average", "N/A"),
+                    "poster_path": f"https://image.tmdb.org/t/p/w500{movie['poster_path']}" if movie.get("poster_path") else None
+                }
+                for movie in data["results"]
+            ]
+        return {"error": "No top-rated movies found."}
+    except requests.RequestException as e:
+        return {"error": f"Error fetching top-rated movies: {str(e)}"}

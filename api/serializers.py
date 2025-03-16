@@ -105,3 +105,10 @@ class TVShowRecommendationSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "tvshow_id", "recommended_tv_show_id", "created_at"]
         read_only_fields = ["id", "username", "created_at"]
 
+class TopRatedMovieSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+    overview = serializers.CharField()
+    release_date = serializers.CharField()
+    rating = serializers.FloatField()
+    poster_path = serializers.CharField(allow_null=True)
