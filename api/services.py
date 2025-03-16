@@ -1,7 +1,7 @@
 import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
-from .models import MovieFeedback, MovieRecommendationFeedback, TVShowRecommendation
+from .models import MovieFeedback, MovieRecommendationFeedback, TVShowRecommendation, FavoriteMovie
 
 TV_GENRES = {
     "Action & Adventure": 10759,
@@ -327,3 +327,15 @@ def get_top_rated_movies():
         return {"error": "No top-rated movies found."}
     except requests.RequestException as e:
         return {"error": f"Error fetching top-rated movies: {str(e)}"}
+
+def add_favorite_movie(user, movie_id, movie_title):
+    """Adds a movie to the user's favorite list."""
+    favorite, created = FavoriteMovie.objects.get_or_create(
+        user=user,
+        movie_id=movie_id,
+        defaults={"movie_title": movie_title}
+    )
+
+    if created:
+        return {"message": f"'{movie_title}' added to favorites."}
+    return {"message": f"'{movie_title}' is already in favorites."}

@@ -3,10 +3,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated  
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
-from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer
-from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title 
+from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer
+from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie 
 from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer
-from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback
+from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback, FavoriteMovie
 from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies
 from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title, save_tv_show_recommendation, remove_tv_show_recommendation
 
@@ -302,3 +302,18 @@ class TopRatedMoviesView(APIView):
 
         serializer = TopRatedMovieSerializer(movies, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class AddFavoriteMovieView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """Add a top-rated movie to the user's favorites."""
+        user = request.user
+        movie_id = request.data.get("movie_id")
+        movie_title = request.data.get("movie_title")
+
+        if not movie_id or not movie_title:
+            return Response({"error": "movie_id and movie_title are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = add_favorite_movie(user, movie_id, movie_title)
+        return Response(result, status=status.HTTP_201_CREATED)

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import RecentSearch, MovieFeedback, TVShowPreference, MovieRecommendationFeedback, TVShowRecommendation
+from .models import RecentSearch, MovieFeedback, TVShowPreference, MovieRecommendationFeedback, TVShowRecommendation, FavoriteMovie
 from django.utils.timezone import localtime
 from .services import TV_GENRES, fetch_movie_title
 
@@ -112,3 +112,12 @@ class TopRatedMovieSerializer(serializers.Serializer):
     release_date = serializers.CharField()
     rating = serializers.FloatField()
     poster_path = serializers.CharField(allow_null=True)
+
+class FavoriteMovieSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        model = FavoriteMovie
+        fields = ["id", "user", "movie_id", "movie_title", "added_at"]
+        read_only_fields = ["id", "user", "added_at"]
+        
