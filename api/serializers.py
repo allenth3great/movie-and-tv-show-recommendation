@@ -168,3 +168,15 @@ class FavoriteActorSerializer(serializers.ModelSerializer):
     class Meta:
         model = FavoriteActor
         fields = ['id', 'actor_id', 'actor_name', 'profile_path', 'added_at']
+
+class ActorMovieSerializer(serializers.Serializer):
+    movie_id = serializers.IntegerField()
+    title = serializers.CharField()
+    release_date = serializers.CharField()
+    character = serializers.CharField()
+    poster_path = serializers.CharField(allow_null=True)
+
+class ActorSerializer(serializers.Serializer):
+    person_id = serializers.IntegerField()
+    name = serializers.CharField()
+    movies = ActorMovieSerializer(many=True)

@@ -3,12 +3,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated  
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
-from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer, TopRatedTVShowSerializer, TVShowCustomizationSerializer, CustomizedTopRatedTVShowSerializer, FavoriteActorSerializer
+from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer, TopRatedTVShowSerializer, TVShowCustomizationSerializer, CustomizedTopRatedTVShowSerializer, FavoriteActorSerializer, ActorMovieSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie, get_top_rated_tv_shows, add_favorite_actor
-from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer, MovieCastAndCrewSerializer
+from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer, MovieCastAndCrewSerializer, ActorSerializer
 from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback, FavoriteMovie
 from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies, get_movie_details_and_cast
-from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title, save_tv_show_recommendation, remove_tv_show_recommendation, get_customized_top_rated_tv_shows, TV_SHOW_GENRES
+from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title, save_tv_show_recommendation, remove_tv_show_recommendation, get_customized_top_rated_tv_shows, TV_SHOW_GENRES, get_actor_movies
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -384,3 +384,17 @@ class AddFavoriteActorView(APIView):
         if created:
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response({"message": "Actor already in favorites.", "data": serializer.data}, status=status.HTTP_200_OK)
+    
+class ActorMoviesView(APIView):
+    """Retrieve movies an actor has starred in"""
+
+    def get(self, request, personId):
+        """Fetch movies featuring a specific actor"""
+        data = get_actor_movies(personId)
+
+        if data is None:
+            return Response({"error": "Failed to fetch actor's movies."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        serialized_data = ActorSerializer(data).data
+
+        return Response(serialized_data, status=status.HTTP_200_OK)

@@ -502,3 +502,42 @@ def add_favorite_actor(user, actor_id, actor_name, profile_path=None):
         defaults={"actor_name": actor_name, "profile_path": profile_path}
     )
     return favorite, created
+
+TMDB_BASE_URL = "https://api.themoviedb.org/3"
+
+def get_actor_movies(person_id):
+    """Fetch the actor's name and movies they have starred in from TMDb API."""
+    
+    # Get actor details (name)
+    person_url = f"{TMDB_BASE_URL}/person/{person_id}"
+    credits_url = f"{TMDB_BASE_URL}/person/{person_id}/movie_credits"
+    
+    params = {
+        "api_key": settings.TMDB_API_KEY,
+        "language": "en-US"
+    }
+
+    person_response = requests.get(person_url, params=params)
+    credits_response = requests.get(credits_url, params=params)
+
+    if person_response.status_code != 200 or credits_response.status_code != 200:
+        return None  # Return None if API request fails
+
+    person_data = person_response.json()
+    credits_data = credits_response.json()
+
+    return {
+        "person_id": person_id,
+        "name": person_data.get("name", "Unknown"),
+        "movies": [
+            {
+                "movie_id": movie["id"],
+                "title": movie["title"],
+                "release_date": movie.get("release_date", "N/A"),
+                "character": movie.get("character", "Unknown"),
+                "poster_path": f"https://image.tmdb.org/t/p/w500{movie['poster_path']}" if movie.get("poster_path") else None
+            }
+            for movie in credits_data.get("cast", [])  # Extract only cast details
+        ]
+    
+    }
