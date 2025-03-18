@@ -180,3 +180,7 @@ class ActorSerializer(serializers.Serializer):
     person_id = serializers.IntegerField()
     name = serializers.CharField()
     movies = ActorMovieSerializer(many=True)
+
+class WatchProviderSerializer(serializers.Serializer):
+    provider_name = serializers.CharField()
+    logo_path = serializers.CharField(allow_null=True)

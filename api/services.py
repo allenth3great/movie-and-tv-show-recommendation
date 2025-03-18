@@ -550,3 +550,26 @@ def remove_favorite_actor(user, actor_id):
         return True
     except FavoriteActor.DoesNotExist:
         return False
+    
+def get_movie_details_and_watch_providers(movie_id):
+    """Fetch the movie title and watch providers from TMDb API."""
+    details_url = f"https://api.themoviedb.org/3/movie/{movie_id}"
+    providers_url = f"https://api.themoviedb.org/3/movie/{movie_id}/watch/providers"
+
+    params = {"api_key": settings.TMDB_API_KEY, "language": "en-US"}
+
+    details_response = requests.get(details_url, params=params)
+    providers_response = requests.get(providers_url, params={"api_key": settings.TMDB_API_KEY})
+
+    if details_response.status_code != 200:
+        return None, None
+
+    movie_data = details_response.json()
+    movie_title = movie_data.get("title")
+
+    if providers_response.status_code != 200:
+        return movie_title, None
+
+    providers_data = providers_response.json().get("results", {})
+
+    return movie_title, providers_data  # Return title and watch providers
