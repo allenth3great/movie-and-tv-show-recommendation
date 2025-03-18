@@ -8,7 +8,7 @@ from .services import get_tokens_for_user, search_movies_by_title, search_tv_sho
 from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer, MovieCastAndCrewSerializer, ActorSerializer, MovieWatchlistSerializer
 from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback, FavoriteMovie
 from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies, get_movie_details_and_cast, add_movie_to_watchlist
-from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title, save_tv_show_recommendation, remove_tv_show_recommendation, get_customized_top_rated_tv_shows, TV_SHOW_GENRES, get_actor_movies
+from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title, save_tv_show_recommendation, remove_tv_show_recommendation, get_customized_top_rated_tv_shows, TV_SHOW_GENRES, get_actor_movies, remove_movie_from_watchlist
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -447,3 +447,15 @@ class AddMovieToWatchlistView(APIView):
         if created:
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response({"message": "Movie already in watchlist.", "data": serializer.data}, status=status.HTTP_200_OK)
+    
+class RemoveMovieFromWatchlistView(APIView):
+    """API to remove a movie from the user's watchlist."""
+    permission_classes = [IsAuthenticated]  # Requires user authentication
+
+    def delete(self, request, movie_id):
+        """Handles removing a movie from the watchlist."""
+        removed = remove_movie_from_watchlist(request.user, movie_id)
+
+        if removed:
+            return Response({"message": "Movie removed from watchlist."}, status=status.HTTP_200_OK)
+        return Response({"error": "Movie not found in watchlist."}, status=status.HTTP_404_NOT_FOUND)

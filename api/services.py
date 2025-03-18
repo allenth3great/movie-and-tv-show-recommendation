@@ -582,3 +582,12 @@ def add_movie_to_watchlist(user, movie_id, movie_title, poster_path=None):
         defaults={"movie_title": movie_title, "poster_path": poster_path}
     )
     return watchlist_item, created
+
+def remove_movie_from_watchlist(user, movie_id):
+    """Removes a movie from the user's watchlist."""
+    try:
+        watchlist_item = MovieWatchlist.objects.get(user=user, movie_id=movie_id)
+        watchlist_item.delete()
+        return True
+    except MovieWatchlist.DoesNotExist:
+        return False
