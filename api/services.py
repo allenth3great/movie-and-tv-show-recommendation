@@ -1,7 +1,7 @@
 import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
-from .models import MovieFeedback, MovieRecommendationFeedback, TVShowRecommendation, FavoriteMovie, FavoriteActor
+from .models import MovieFeedback, MovieRecommendationFeedback, TVShowRecommendation, FavoriteMovie, FavoriteActor, MovieWatchlist
 
 TV_GENRES = {
     "Action & Adventure": 10759,
@@ -573,3 +573,12 @@ def get_movie_details_and_watch_providers(movie_id):
     providers_data = providers_response.json().get("results", {})
 
     return movie_title, providers_data  # Return title and watch providers
+
+def add_movie_to_watchlist(user, movie_id, movie_title, poster_path=None):
+    """Adds a movie to the user's watchlist."""
+    watchlist_item, created = MovieWatchlist.objects.get_or_create(
+        user=user,
+        movie_id=movie_id,
+        defaults={"movie_title": movie_title, "poster_path": poster_path}
+    )
+    return watchlist_item, created

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import RecentSearch, MovieFeedback, TVShowPreference, MovieRecommendationFeedback, TVShowRecommendation, FavoriteMovie, FavoriteActor
+from .models import RecentSearch, MovieFeedback, TVShowPreference, MovieRecommendationFeedback, TVShowRecommendation, FavoriteMovie, FavoriteActor, MovieWatchlist
 from django.utils.timezone import localtime
 from .services import TV_GENRES, fetch_movie_title
 
@@ -184,3 +184,10 @@ class ActorSerializer(serializers.Serializer):
 class WatchProviderSerializer(serializers.Serializer):
     provider_name = serializers.CharField()
     logo_path = serializers.CharField(allow_null=True)
+
+class MovieWatchlistSerializer(serializers.ModelSerializer):
+    """Serializer for movie watchlist items."""
+    
+    class Meta:
+        model = MovieWatchlist
+        fields = ['id', 'movie_id', 'movie_title', 'poster_path', 'added_at']

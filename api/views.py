@@ -5,9 +5,9 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer, TopRatedTVShowSerializer, TVShowCustomizationSerializer, CustomizedTopRatedTVShowSerializer, FavoriteActorSerializer, ActorMovieSerializer
 from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie, get_top_rated_tv_shows, add_favorite_actor, remove_favorite_actor, get_movie_details_and_watch_providers
-from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer, MovieCastAndCrewSerializer, ActorSerializer
+from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer, MovieCastAndCrewSerializer, ActorSerializer, MovieWatchlistSerializer
 from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback, FavoriteMovie
-from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies, get_movie_details_and_cast
+from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies, get_movie_details_and_cast, add_movie_to_watchlist
 from .services import TV_GENRES, get_tv_show_recommendations, fetch_tv_show_title, save_tv_show_recommendation, remove_tv_show_recommendation, get_customized_top_rated_tv_shows, TV_SHOW_GENRES, get_actor_movies
 
 class RegisterView(generics.CreateAPIView):
@@ -426,3 +426,24 @@ class MovieWatchProvidersView(APIView):
             return Response({"movie_id": movieId, "movie_title": movie_title, "watch_providers": {}}, status=status.HTTP_200_OK)
 
         return Response({"movie_id": movieId, "movie_title": movie_title, "watch_providers": providers_data}, status=status.HTTP_200_OK)
+    
+class AddMovieToWatchlistView(APIView):
+    """API to add a movie to the user's watchlist."""
+    permission_classes = [IsAuthenticated]  # Requires user authentication
+
+    def post(self, request):
+        """Handles adding a movie to the watchlist."""
+        movie_id = request.data.get("movie_id")
+        movie_title = request.data.get("movie_title")
+        poster_path = request.data.get("poster_path")  # Optional
+
+        if not movie_id or not movie_title:
+            return Response({"error": "movie_id and movie_title are required."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        watchlist_item, created = add_movie_to_watchlist(request.user, movie_id, movie_title, poster_path)
+        serializer = MovieWatchlistSerializer(watchlist_item)
+
+        if created:
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({"message": "Movie already in watchlist.", "data": serializer.data}, status=status.HTTP_200_OK)

@@ -87,3 +87,17 @@ class FavoriteActor(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.actor_name}"
+
+class MovieWatchlist(models.Model):
+    """Model to store a user's watchlisted movies."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Link to User
+    movie_id = models.IntegerField()  # TMDb movie ID
+    movie_title = models.CharField(max_length=255)  # Store movie title
+    poster_path = models.URLField(null=True, blank=True)  # Optional movie poster
+    added_at = models.DateTimeField(auto_now_add=True)  # Timestamp
+
+    class Meta:
+        unique_together = ('user', 'movie_id')  # Prevent duplicate entries
+
+    def __str__(self):
+        return f"{self.user.username} - {self.movie_title} (ID: {self.movie_id})"
