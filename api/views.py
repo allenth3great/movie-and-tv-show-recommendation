@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from .serializers import UserSerializer, MovieSerializer,RecentSearchSerializer, FavoriteMovieSerializer, TopRatedTVShowSerializer, TVShowCustomizationSerializer, CustomizedTopRatedTVShowSerializer, FavoriteActorSerializer, ActorMovieSerializer
-from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie, get_top_rated_tv_shows, add_favorite_actor
+from .services import get_tokens_for_user, search_movies_by_title, search_tv_shows_by_title, add_favorite_movie, get_top_rated_tv_shows, add_favorite_actor, remove_favorite_actor
 from .serializers import RecentSearchSerializer, MovieFeedbackSerializer, TVShowPreferenceSerializer, MovieRecommendationFeedbackSerializer, TVShowRecommendationSerializer, TopRatedMovieSerializer, MovieCastAndCrewSerializer, ActorSerializer
 from .models import RecentTVShowSearch, TVShowPreference, MovieRecommendationFeedback, FavoriteMovie
 from .services import get_trending_movies, submit_movie_feedback, get_trending_tv_shows, get_movie_title, get_movie_recommendations, save_feedback, get_top_rated_movies, get_movie_details_and_cast
@@ -398,3 +398,16 @@ class ActorMoviesView(APIView):
         serialized_data = ActorSerializer(data).data
 
         return Response(serialized_data, status=status.HTTP_200_OK)
+    
+class RemoveFavoriteActorView(APIView):
+    """Remove an actor from the user's favorite list."""
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, personId):
+        """Handles deleting a favorite actor."""
+        user = request.user
+
+        success = remove_favorite_actor(user, personId)
+        if success:
+            return Response({"message": "Actor removed from favorites."}, status=status.HTTP_200_OK)
+        return Response({"error": "Actor not found in favorites."}, status=status.HTTP_404_NOT_FOUND)

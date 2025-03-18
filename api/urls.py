@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, MovieSearchView, SaveRecentSearchView, TVShowSearchView, ClearRecentTVShowSearchView, CustomizeTopRatedTVShowsView, MovieCastView
+from .views import RegisterView, LoginView, MovieSearchView, SaveRecentSearchView, TVShowSearchView, ClearRecentTVShowSearchView, CustomizeTopRatedTVShowsView, MovieCastView, RemoveFavoriteActorView
 from .views import TrendingMoviesView, SubmitMovieFeedbackView, TrendingTVShowsView, TVShowPreferenceView, MovieRecommendationsView, MovieRecommendationFeedbackView, ActorMoviesView
 from .views import TVShowRecommendationsView, SaveTVShowRecommendationView, RemoveTVShowRecommendationView, TopRatedMoviesView, AddFavoriteMovieView, TopRatedTVShowsView, AddFavoriteActorView
 
@@ -26,6 +26,7 @@ urlpatterns = [
     path('movies/<int:movie_id>/cast/', MovieCastView.as_view(), name='movie-cast'),
     path('movies/<int:movie_id>/cast/favorite/', AddFavoriteActorView.as_view(), name='add-favorite-actor'),
     path("person/<int:personId>/movies/", ActorMoviesView.as_view(), name="actor-movies"),
+    path("person/<int:personId>/movies/remove/", RemoveFavoriteActorView.as_view(), name="remove_favorite_actor"),
     
 
 ]

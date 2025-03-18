@@ -541,3 +541,12 @@ def get_actor_movies(person_id):
         ]
     
     }
+
+def remove_favorite_actor(user, actor_id):
+    """Remove an actor from the user's favorites list."""
+    try:
+        favorite_actor = FavoriteActor.objects.get(user=user, actor_id=actor_id)
+        favorite_actor.delete()
+        return True
+    except FavoriteActor.DoesNotExist:
+        return False
