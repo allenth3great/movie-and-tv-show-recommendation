@@ -34,8 +34,7 @@ class RecentSearchSerializer(serializers.ModelSerializer):
        return localtime(obj.searched_at).isoformat()
     
     def get_user(self, obj):
-        # Assuming 'user' is a ForeignKey to the User model
-        return obj.user.username  # Fetches the actual username
+        return obj.user.username  
 
     class Meta:
         model = RecentSearch
@@ -43,8 +42,8 @@ class RecentSearchSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'searched_at']
     
 class MovieFeedbackSerializer(serializers.ModelSerializer):
-    rating = serializers.CharField()  # Handle rating as a CharField
-    timestamp = serializers.DateTimeField(read_only=True)  # Include timestamp in the response
+    rating = serializers.CharField()  
+    timestamp = serializers.DateTimeField(read_only=True)  
 
     class Meta:
         model = MovieFeedback
@@ -60,25 +59,24 @@ class MovieFeedbackSerializer(serializers.ModelSerializer):
     
 class TVShowPreferenceSerializer(serializers.ModelSerializer):
     preferred_genres = serializers.ListField(
-        child=serializers.CharField(),  # Expecting genre names as input
+        child=serializers.CharField(),  
         required=False
     )
 
     def validate_preferred_genres(self, value):
-        """Validate genre names and convert them to IDs."""
         invalid_genres = [genre for genre in value if genre not in TV_GENRES]
         if invalid_genres:
             raise serializers.ValidationError(
                 f"Invalid genres: {', '.join(invalid_genres)}. Use valid genre names."
             )
-        return value  # Store genre names
+        return value  
 
     class Meta:
         model = TVShowPreference
         fields = ['preferred_genres']
 
 class MovieRecommendationFeedbackSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source="user.username", read_only=True)  # Show username instead of user ID
+    username = serializers.CharField(source="user.username", read_only=True)  
     movie_title = serializers.SerializerMethodField()
     recommended_movie_title = serializers.SerializerMethodField()
 
@@ -160,7 +158,7 @@ class CrewSerializer(serializers.Serializer):
     profile_path = serializers.CharField(allow_null=True)
 
 class MovieCastAndCrewSerializer(serializers.Serializer):
-    movie_title = serializers.CharField()  # Include movie title in the response
+    movie_title = serializers.CharField()  
     cast = CastSerializer(many=True)
     crew = CrewSerializer(many=True)
 
@@ -186,7 +184,6 @@ class WatchProviderSerializer(serializers.Serializer):
     logo_path = serializers.CharField(allow_null=True)
 
 class MovieWatchlistSerializer(serializers.ModelSerializer):
-    """Serializer for movie watchlist items."""
     
     class Meta:
         model = MovieWatchlist

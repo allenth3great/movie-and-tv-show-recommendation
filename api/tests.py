@@ -1,6 +1,4 @@
 from django.test import TestCase
-
-# tests.py
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -14,7 +12,7 @@ class MovieSearchTests(APITestCase):
     def test_search_movies(self):
         response = self.client.get(reverse('movie-search'), {'query': 'Inception'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('results', response.data)  # Check if results key is in response
+        self.assertIn('results', response.data)  
 
     def test_search_movies_no_query(self):
         response = self.client.get(reverse('movie-search'))

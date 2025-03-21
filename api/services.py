@@ -42,16 +42,14 @@ TV_SHOW_GENRES = {
 }
 
 
-def get_tokens_for_user(user):
-    """Generate JWT tokens for the user."""
+def get_tokens_for_user(user):    
     refresh = RefreshToken.for_user(user)
     return {
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
 
-def search_movies_by_title(query):
-    """Search movies by title using the TMDb API."""
+def search_movies_by_title(query):   
     url = "https://api.themoviedb.org/3/search/movie"
     params = {
         'api_key': settings.TMDB_API_KEY,
@@ -62,7 +60,7 @@ def search_movies_by_title(query):
 
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise an exception for 4xx/5xx errors
+        response.raise_for_status()  
         data = response.json()
         
         if "results" in data:
@@ -81,8 +79,7 @@ def search_movies_by_title(query):
     except requests.exceptions.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
     
-def search_tv_shows_by_title(query):
-    """Search TV shows by title using the TMDb API."""
+def search_tv_shows_by_title(query):    
     url = "https://api.themoviedb.org/3/search/tv"
     params = {
         'api_key': settings.TMDB_API_KEY,
@@ -93,14 +90,14 @@ def search_tv_shows_by_title(query):
 
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise an exception for 4xx/5xx errors
+        response.raise_for_status()  
         data = response.json()
         
         if "results" in data:
             return [
                 {
                     "id": show["id"],
-                    "title": show["name"],  # TMDb uses "name" for TV shows
+                    "title": show["name"],  
                     "overview": show.get("overview", "No description available."),
                     "first_air_date": show.get("first_air_date", "Unknown"),
                     "poster_path": f"https://image.tmdb.org/t/p/w500{show['poster_path']}" if show.get("poster_path") else None
@@ -112,8 +109,7 @@ def search_tv_shows_by_title(query):
     except requests.exceptions.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
     
-def get_trending_movies():
-    """Fetch trending movies from the TMDb API."""
+def get_trending_movies():    
     url = "https://api.themoviedb.org/3/trending/movie/week"
     params = {
         'api_key': settings.TMDB_API_KEY,
@@ -122,7 +118,7 @@ def get_trending_movies():
 
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise an error for HTTP 4xx/5xx responses
+        response.raise_for_status()  
         data = response.json()
 
         if "results" in data:
@@ -153,8 +149,7 @@ def submit_movie_feedback(movie_title, rating, comment, user):
     except Exception as e:
         return None
     
-def get_trending_tv_shows():
-    """Fetch trending TV shows from TMDb API."""
+def get_trending_tv_shows():   
     url = "https://api.themoviedb.org/3/trending/tv/week"
     params = {
         'api_key': settings.TMDB_API_KEY,
@@ -163,7 +158,7 @@ def get_trending_tv_shows():
 
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise an exception for 4xx/5xx errors
+        response.raise_for_status()  
         data = response.json()
 
         if "results" in data:
@@ -182,8 +177,7 @@ def get_trending_tv_shows():
     except requests.exceptions.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
     
-def get_movie_title(movie_id):
-    """Fetch the movie title from TMDb based on the given movie_id."""
+def get_movie_title(movie_id):   
     url = f"https://api.themoviedb.org/3/movie/{movie_id}"
     params = {
         "api_key": settings.TMDB_API_KEY,
@@ -196,10 +190,9 @@ def get_movie_title(movie_id):
         data = response.json()
         return data.get("title", "Unknown Movie")
     except requests.exceptions.RequestException:
-        return None  # Return None if the movie is not found
+        return None  
 
-def get_movie_recommendations(movie_id):
-    """Fetch recommended movies based on a given movie ID from the TMDb API."""
+def get_movie_recommendations(movie_id):   
     url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations"
     params = {
         "api_key": settings.TMDB_API_KEY,
@@ -229,20 +222,18 @@ def get_movie_recommendations(movie_id):
         return None
     
 def fetch_movie_title(movie_id):
-    """Fetch movie title from TMDb API based on movie ID."""
     url = f"https://api.themoviedb.org/3/movie/{movie_id}"
     params = {"api_key": settings.TMDB_API_KEY, "language": "en-US"}
 
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise an error for bad responses
+        response.raise_for_status()  
         data = response.json()
         return data.get("title", "Unknown Title")
     except requests.RequestException:
         return "Unknown Title"
 
 def save_feedback(user, movie_id, recommended_movie_id, feedback):
-    """Save user feedback on recommended movies."""
     feedback_instance, created = MovieRecommendationFeedback.objects.update_or_create(
         user=user,
         movie_id=movie_id,
@@ -251,8 +242,7 @@ def save_feedback(user, movie_id, recommended_movie_id, feedback):
     )
     return feedback_instance
 
-def get_tv_show_recommendations(tv_show_id):
-    """Fetch recommended TV shows based on a given TV show ID from the TMDb API."""
+def get_tv_show_recommendations(tv_show_id):   
     url = f"https://api.themoviedb.org/3/tv/{tv_show_id}/recommendations"
     params = {
         'api_key': settings.TMDB_API_KEY,
@@ -262,7 +252,7 @@ def get_tv_show_recommendations(tv_show_id):
 
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise an exception for HTTP errors
+        response.raise_for_status()  
         data = response.json()
 
         if "results" in data and data["results"]:
@@ -280,21 +270,29 @@ def get_tv_show_recommendations(tv_show_id):
     except requests.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
     
-def fetch_tv_show_title(tv_show_id):
-    """Fetch the title of a TV show by its ID from the TMDb API."""
+def fetch_tv_show_title(tv_show_id):    
     url = f"https://api.themoviedb.org/3/tv/{tv_show_id}"
     params = {'api_key': settings.TMDB_API_KEY, 'language': 'en-US'}
 
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise an error for HTTP issues
+        response.raise_for_status()  
         data = response.json()
         return data.get("name", "Unknown Title")
     except requests.RequestException:
         return "Unknown Title"
 
-def save_tv_show_recommendation(user, tvshow_id, recommended_tv_show_id):
-    """Save a TV show recommendation for a user."""
+def fetch_tv_show_details(tv_show_id):
+    api_key = settings.TMDB_API_KEY
+    url = f"https://api.themoviedb.org/3/tv/{tv_show_id}?api_key={api_key}"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        return response.json()
+    
+    return {}
+
+def save_tv_show_recommendation(user, tvshow_id, recommended_tv_show_id):   
     recommendation, created = TVShowRecommendation.objects.get_or_create(
         user=user,
         tvshow_id=tvshow_id,
@@ -302,10 +300,7 @@ def save_tv_show_recommendation(user, tvshow_id, recommended_tv_show_id):
     )
     return recommendation, created
 
-def remove_tv_show_recommendation(user, tv_show_id, recommended_tv_show_id):
-    """
-    Remove a specific TV show recommendation.
-    """
+def remove_tv_show_recommendation(user, tv_show_id, recommended_tv_show_id):    
     try:
         recommendation = TVShowRecommendation.objects.get(
             user=user,
@@ -317,13 +312,12 @@ def remove_tv_show_recommendation(user, tv_show_id, recommended_tv_show_id):
     except TVShowRecommendation.DoesNotExist:
         return {"error": "Recommendation not found."}
 
-def get_top_rated_movies():
-    """Fetch the top-rated movies from the TMDb API."""
+def get_top_rated_movies():    
     url = "https://api.themoviedb.org/3/movie/top_rated"
     params = {
         'api_key': settings.TMDB_API_KEY,
         'language': 'en-US',
-        'page': 1  # Fetch the first page
+        'page': 1  
     }
 
     try:
@@ -347,8 +341,7 @@ def get_top_rated_movies():
     except requests.RequestException as e:
         return {"error": f"Error fetching top-rated movies: {str(e)}"}
 
-def add_favorite_movie(user, movie_id, movie_title):
-    """Adds a movie to the user's favorite list."""
+def add_favorite_movie(user, movie_id, movie_title):    
     favorite, created = FavoriteMovie.objects.get_or_create(
         user=user,
         movie_id=movie_id,
@@ -359,8 +352,7 @@ def add_favorite_movie(user, movie_id, movie_title):
         return {"message": f"'{movie_title}' added to favorites."}
     return {"message": f"'{movie_title}' is already in favorites."}
 
-def get_top_rated_tv_shows():
-    """Fetch top-rated TV shows from TMDb API."""
+def get_top_rated_tv_shows():    
     url = "https://api.themoviedb.org/3/tv/top_rated"
     params = {
         "api_key": settings.TMDB_API_KEY,
@@ -370,7 +362,7 @@ def get_top_rated_tv_shows():
 
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise error for bad responses
+        response.raise_for_status()  
         data = response.json()
 
         if "results" in data:
@@ -391,7 +383,6 @@ def get_top_rated_tv_shows():
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
 
 def get_customized_top_rated_tv_shows(preferred_genres=None, min_rating=None, release_year=None):
-    """Fetch top-rated TV shows from TMDb API and filter based on user preferences."""
     url = "https://api.themoviedb.org/3/tv/top_rated"
     params = {
         "api_key": settings.TMDB_API_KEY,
@@ -409,13 +400,13 @@ def get_customized_top_rated_tv_shows(preferred_genres=None, min_rating=None, re
 
         filtered_tv_shows = []
         for show in data["results"]:
-            # Convert genre names to IDs
+            
             show_genre_ids = set(show.get("genre_ids", []))
-            genre_filter = True  # Default to True (accept all genres)
+            genre_filter = True  
 
             if preferred_genres:
                 selected_genre_ids = {TV_SHOW_GENRES.get(genre) for genre in preferred_genres if genre in TV_SHOW_GENRES}
-                genre_filter = bool(show_genre_ids & selected_genre_ids)  # At least one matching genre
+                genre_filter = bool(show_genre_ids & selected_genre_ids)  
 
             rating_filter = min_rating is None or show.get("vote_average", 0) >= min_rating
             year_filter = release_year is None or (show.get("first_air_date", "").startswith(str(release_year)))
@@ -437,7 +428,6 @@ def get_customized_top_rated_tv_shows(preferred_genres=None, min_rating=None, re
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
 
 def get_movie_details_and_cast(movie_id):
-    """Fetch the movie title, cast, and crew from the TMDb API."""
     details_url = f"https://api.themoviedb.org/3/movie/{movie_id}"
     credits_url = f"https://api.themoviedb.org/3/movie/{movie_id}/credits"
     
@@ -447,12 +437,12 @@ def get_movie_details_and_cast(movie_id):
     }
 
     try:
-        # Fetch movie details (for title)
+        
         details_response = requests.get(details_url, params=params)
         details_response.raise_for_status()
         details_data = details_response.json()
 
-        # Fetch cast and crew details
+        
         credits_response = requests.get(credits_url, params=params)
         credits_response.raise_for_status()
         credits_data = credits_response.json()
@@ -460,10 +450,10 @@ def get_movie_details_and_cast(movie_id):
         if "title" not in details_data or "cast" not in credits_data or "crew" not in credits_data:
             return {"error": "No movie details, cast, or crew information found."}
 
-        # Extract movie title
+        
         movie_title = details_data["title"]
 
-        # Extract cast details (limit to 10 for brevity)
+        
         cast = [
             {
                 "id": member["id"],
@@ -474,7 +464,7 @@ def get_movie_details_and_cast(movie_id):
             for member in credits_data["cast"][:10]
         ]
 
-        # Extract crew details (filtering for director, producer, writer)
+        
         crew = [
             {
                 "id": member["id"],
@@ -494,8 +484,7 @@ def get_movie_details_and_cast(movie_id):
     except requests.exceptions.RequestException as e:
         return {"error": f"Error connecting to TMDb API: {str(e)}"}
 
-def add_favorite_actor(user, actor_id, actor_name, profile_path=None):
-    """Save an actor as a favorite for the user."""
+def add_favorite_actor(user, actor_id, actor_name, profile_path=None):    
     favorite, created = FavoriteActor.objects.get_or_create(
         user=user,
         actor_id=actor_id,
@@ -505,10 +494,7 @@ def add_favorite_actor(user, actor_id, actor_name, profile_path=None):
 
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 
-def get_actor_movies(person_id):
-    """Fetch the actor's name and movies they have starred in from TMDb API."""
-    
-    # Get actor details (name)
+def get_actor_movies(person_id):       
     person_url = f"{TMDB_BASE_URL}/person/{person_id}"
     credits_url = f"{TMDB_BASE_URL}/person/{person_id}/movie_credits"
     
@@ -521,7 +507,7 @@ def get_actor_movies(person_id):
     credits_response = requests.get(credits_url, params=params)
 
     if person_response.status_code != 200 or credits_response.status_code != 200:
-        return None  # Return None if API request fails
+        return None  
 
     person_data = person_response.json()
     credits_data = credits_response.json()
@@ -537,13 +523,12 @@ def get_actor_movies(person_id):
                 "character": movie.get("character", "Unknown"),
                 "poster_path": f"https://image.tmdb.org/t/p/w500{movie['poster_path']}" if movie.get("poster_path") else None
             }
-            for movie in credits_data.get("cast", [])  # Extract only cast details
+            for movie in credits_data.get("cast", [])  
         ]
     
     }
 
-def remove_favorite_actor(user, actor_id):
-    """Remove an actor from the user's favorites list."""
+def remove_favorite_actor(user, actor_id):    
     try:
         favorite_actor = FavoriteActor.objects.get(user=user, actor_id=actor_id)
         favorite_actor.delete()
@@ -551,8 +536,7 @@ def remove_favorite_actor(user, actor_id):
     except FavoriteActor.DoesNotExist:
         return False
     
-def get_movie_details_and_watch_providers(movie_id):
-    """Fetch the movie title and watch providers from TMDb API."""
+def get_movie_details_and_watch_providers(movie_id):    
     details_url = f"https://api.themoviedb.org/3/movie/{movie_id}"
     providers_url = f"https://api.themoviedb.org/3/movie/{movie_id}/watch/providers"
 
@@ -572,10 +556,9 @@ def get_movie_details_and_watch_providers(movie_id):
 
     providers_data = providers_response.json().get("results", {})
 
-    return movie_title, providers_data  # Return title and watch providers
+    return movie_title, providers_data 
 
 def add_movie_to_watchlist(user, movie_id, movie_title, poster_path=None):
-    """Adds a movie to the user's watchlist."""
     watchlist_item, created = MovieWatchlist.objects.get_or_create(
         user=user,
         movie_id=movie_id,
@@ -584,7 +567,6 @@ def add_movie_to_watchlist(user, movie_id, movie_title, poster_path=None):
     return watchlist_item, created
 
 def remove_movie_from_watchlist(user, movie_id):
-    """Removes a movie from the user's watchlist."""
     try:
         watchlist_item = MovieWatchlist.objects.get(user=user, movie_id=movie_id)
         watchlist_item.delete()
